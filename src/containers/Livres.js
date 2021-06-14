@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Livre from '../components/livre';
 import FormAjoutLivre from '../components/formAjoutLivre';
+import FormModifLivre from '../components/formModifLivre';
+import Alert from '../components/alert';
 
 export default class Livres extends Component {
     state = {
@@ -12,7 +14,8 @@ export default class Livres extends Component {
             {id:5, titre: 'Le virus d\'Asie', auteur: 'Tya MILO', nbpage: 200, }
         ],
         lastId: 6,
-        idLivreAModifier:0  
+        idLivreAModifier:0,
+        messageAlert:""
     };
 
 
@@ -24,12 +27,33 @@ export default class Livres extends Component {
 
         const newLivres = [...this.state.livres];
         newLivres.splice(livreIndexTab, 1);
-        this.setState({livres: newLivres});
+        this.setState({
+            livres: newLivres,
+            messageAlert:{
+                message:"Le livre a été supprimé avec succès",
+                type:"alert-danger"
+            }
+        });
 
     }
  
-    handleUpdate = (id)=> {
-        console.log('modification du livre '+id);
+    handleUpdate = (id,titre,auteur,nbpage)=> {
+        const indexLivre = this.state.livres.findIndex(l=>{
+            return l.id === id;
+        });
+
+        const newLivres = [...this.state.livres];
+        const newlivre = {id,titre,auteur,nbpage};
+        newLivres[indexLivre]=newlivre;
+        this.setState({livres:newLivres,
+            idLivreAModifier:0,
+            messageAlert:{
+                message:"Le livre a été modifié avec succès",
+                type:"alert-info"
+            }
+        })
+
+
     }
 
     handleAjoutLivre =(titre,auteur,nbpage) =>{
@@ -38,14 +62,18 @@ export default class Livres extends Component {
             id:this.state.lastId + 1, 
             titre: titre, 
             auteur: auteur, 
-            nbpage: nbpage 
+            nbpage: nbpage
         };
-        livresTab.push(newLivre);
 
+        livresTab.push(newLivre);
         this.setState(oldState => {
             return {
                 livres: livresTab,
-                lastId: oldState.lastId + 1
+                lastId: oldState.lastId + 1,
+                messageAlert:{
+                    message:"Le livre a été ajouté avec succès",
+                    type:"alert-success"
+                }
             }
         });
         this.props.fermerFormAjout();
@@ -57,6 +85,7 @@ export default class Livres extends Component {
 
         return (
             <>
+            {this.state.messageAlert && <Alert typeAlert = {this.state.messageAlert.type}>{this.state.messageAlert.message}</Alert>}
             <table className="table text-center">
                 <thead>
                     <tr className="table-dark">
@@ -68,15 +97,28 @@ export default class Livres extends Component {
                 </thead>
                 <tbody>
                    {this.state.livres.map(livre => {
-                       return (
-                        <tr key = {livre.id}>
-                            <Livre 
-                                livre = {livre} 
-                                delete = {this.handleDelete}
-                                update = {this.handleUpdate}
-                            />
-                        </tr>
-                        )})
+                    if (livre.id !== this.state.idLivreAModifier){   
+                        return (
+                            <tr key = {livre.id}>
+                                <Livre 
+                                    livre = {livre} 
+                                    delete = {this.handleDelete}
+                                    update = {()=>this.setState({idLivreAModifier:livre.id})}
+                                />
+                            </tr>
+                        )
+                    }else{
+                        return (
+                            <tr key = {livre.id}>                            
+                                <FormModifLivre 
+                                livre = {livre}
+                                handleUpdate= {this.handleUpdate}
+                                idLivreAModifier = {this}
+                                />
+                            </tr>
+                        )                        
+                    }
+                    })
                     } 
                 </tbody>
             </table>
