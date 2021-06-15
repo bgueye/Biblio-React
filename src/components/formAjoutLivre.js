@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Bouton from './boutons/bouton';
 import {withFormik} from 'formik';
+import * as Yup from 'yup';
 
 class FormAjoutLivre extends Component {
     // state  = {
@@ -70,7 +71,7 @@ class FormAjoutLivre extends Component {
                     id="nbpage" 
                     name = "nbPage"
                     value = {this.props.values.nbPage}
-                    onChange = {this.props.handleChange} 
+                    onChange = {(event)=>this.props.setFieldValue('nbPage',parseInt(event.target.value))}
                     onBlur = {this.props.handleBlur}                   
                     // value = {this.state.nbPageSaisi}
                     // onChange = {(event) => this.setState({nbPageSaisi:event.target.value})}
@@ -94,20 +95,32 @@ export default withFormik({
         auteur:"",
         nbPage:""
       }),
-      validate: values => {
-          const errors = {};
-          if (values.titre.length < 3){
-              errors.titre = "Le titre doit contenir au moins 3 caractères";
-          }
-          if (values.titre.length > 15){
-              errors.titre = "Le titre doit contenir moins de 15 caractères";
-          }
-          if (!values.auteur){
-              errors.auteur = "Le champs auteur est obligatoire";
-          }                   
-          return errors;
+      validationSchema : Yup.object().shape({
+        titre: Yup.string()
+                    .min(3,"Le titre doit avoir plus de trois caractères")
+                    .max(15,"Le titre doit avoir moins de 15 caractères")
+                    .required("Le titre est obligatoire"),
+        auteur: Yup.string()
+                    .min(3,"L'auteur doit avoir plus de trois caractères")
+                    .required("L'auteur est obligatoire"),
+        nbPage: Yup.number()
+                    .lessThan(1000,'Le nombre de pages doit être inférieur à 1000')
+                    .moreThan(50,'Lnombre de pages doit être supérieur 50')
+      }), 
+    //   validate: values => {
+    //       const errors = {};
+    //       if (values.titre.length < 3){
+    //           errors.titre = "Le titre doit contenir au moins 3 caractères";
+    //       }
+    //       if (values.titre.length > 15){
+    //           errors.titre = "Le titre doit contenir moins de 15 caractères";
+    //       }
+    //       if (!values.auteur){
+    //           errors.auteur = "Le champs auteur est obligatoire";
+    //       }                   
+    //       return errors;
         
-      },
+    //   },
       handleSubmit: (values,{props}) => {
         props.validation(values.titre,values.auteur,values.nbPage);
       }
